@@ -1,152 +1,164 @@
 import React, { Component } from 'react';
-import Realm from 'realm';
 import { 
-  TextInput, View, TouchableOpacity, StyleSheet, 
+  TextInput, View, TouchableOpacity, ToastAndroid,
   SafeAreaView, Text, ScrollView, VirtualizedList
 } from 'react-native';
-import { ItemSchema } from './assets/models/listaCompraSchema'
-import {Picker} from '@react-native-picker/picker';
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  section: {
-    marginHorizontal: 20,
-    marginVertical: 10,
-  },
-  text: { fontSize: 20 },
-  item: {
-    backgroundColor: "#f9c2ff",
-    paddingHorizontal: 8,
-    marginVertical: 8,
-    flex:1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignContent: "center"
-  },
-  botao: {
-    backgroundColor: "#a30fb3",
-    padding: 20,
-    marginVertical: 8,
-    fontSize: 20,
-    textAlign: "center",
-    color: "#FFF"
-  },
-  botaoItem: {
-    backgroundColor: "#a30fb3",
-    padding: 15,
-    width: 50,
-    marginVertical: 8,
-    fontSize: 20,
-    textAlign: "center",
-    color: "#FFF",
-    float: "right"
-  },
-  title: { 
-    fontSize: 20,
-    marginVertical: 8,
-    width: 100
-  },
-  input: { 
-    borderColor: '#f9c2ff',
-    borderWidth: 1,
-    height: 45,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    fontSize: 20,
-    marginVertical: 8
-  },
-  select: { 
-    borderColor: '#f9c2ff',
-    borderWidth: 1,
-    height: 45,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    fontSize: 20,
-    marginVertical: 8,
-    backgroundColor: "#fff"
-  },
-  separator: {
-    marginVertical: 8,
-    borderBottomColor: '#737373',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  }
-});
+import Item from './components/Item';
+import { Picker } from '@react-native-picker/picker';
+import { styles } from './assets/styles/index'
+import ItemSchema from './assets/models/listaCompraSchema';
+import Realm from "realm";
 
 const Separator = () => ( <View style={styles.separator} /> );
-
-const Item = ({ item, incrementarItem, diminuirItem, removerItem })=> {
-  return (
-    <View style={styles.item}>
-      <Text style={styles.title}>{ item.quantidade } { item.tipo } { item.descricao }</Text>
-      <TouchableOpacity onPress={ incrementarItem }>
-        <Text style={styles.botaoItem}>+</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={ diminuirItem }>
-        <Text style={styles.botaoItem}>-</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={ removerItem }>
-        <Text style={styles.botaoItem}>X</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
 
 export default class App extends Component {
   constructor(props) {
     super(props);
-    this.state = { 
-      lista: [], 
-      descricao: '', 
-      quantidade: '',
-      tipo: '',
-    };
+    this.state = { lista: [], descricao: '', quantidade: '',tipo: '', };
+    
+    Realm.open({ schema: [ ItemSchema ] })
+      .then(realm => { 
+        let itens = [];
+        for( let item of realm.objects('Item').sorted('id',true) ){
+          itens.push({
+            id: item.id,
+            descricao: item.descricao,
+            quantidade: item.quantidade,
+            tipo: item.tipo,
+          });
+        }
+        realm.close();
+        this.setState( state => state.lista = itens );
+      });
   }
-  
+
   adicionaItem(){
     let descricao:string = this.state.descricao.trim();
     let quantidade:string = this.state.quantidade.trim();
     let tipo:string = this.state.tipo.trim();
     
     if( ( descricao.length || quantidade.length ) > 0 ){
-      let lista = this.state.lista.reverse();
-      lista.push({ descricao: descricao, quantidade:quantidade, tipo:tipo });
-      lista = lista.reverse();
-      this.setState({ lista: lista, descricao: '', quantidade: '', tipo: '' });
 
-      // Realm.open({schema: [ ItemSchema ]})
-      //   .then(realm => {
-  
-      //     realm.write(() => {
-      //       const meuItem = realm.create('Item', {
-      //         descricao: descricao,
-      //         quantidade: quantidade,
-      //         tipo: '',
-      //       });
-      //     });
+      let novo_item = {
+        id: new Date().getTime(),
+        descricao: descricao,
+        quantidade:quantidade,
+        tipo:tipo
+      };
+
+      this.setState( state => state.descricao = '' );
+      this.setState( state => state.quantidade = '' );
+      this.setState( state => state.tipo = '' );
+
+      Realm.open({ schema: [ ItemSchema ] })
+        .then(realm => { 
+          realm.write(() => realm.create('Item', novo_item) );
+          let itens = [];
+          for( let item of realm.objects('Item').sorted('id',true) ){
+            itens.push({
+              id: item.id,
+              descricao: item.descricao,
+              quantidade: item.quantidade,
+              tipo: item.tipo,
+            });
+          }
+          realm.close();
+          this.setState( state => state.lista = itens );
+
+          ToastAndroid.showWithGravityAndOffset(
+            'Item Adicionado',
+            ToastAndroid.SHORT,
+            ToastAndroid.BOTTOM,
+            25,
+            50
+          );
+          
+        })
+        .catch( e => ToastAndroid.showWithGravityAndOffset(
+          JSON.stringify(e),
+          ToastAndroid.SHORT,
+          ToastAndroid.BOTTOM,
+          25,
+          50
+        ));
         
-      //     const itens = realm.objects('Item');
-      //     realm.close();
-      //   })
-      //   .catch(error => console.log(error) );
     }
+  }
+
+  removerItem(indice){
+    let item = this.state.lista[ indice ];
+    
+    Realm.open({ schema: [ ItemSchema ] })
+      .then(realm => { 
+        let obj = realm.objectForPrimaryKey( 'Item', item.id );
+        realm.write(() => realm.delete( obj ));
+        
+        let itens = []
+        for( let item of realm.objects('Item').sorted('id',true) ){
+          itens.push({
+            id: item.id,
+            descricao: item.descricao,
+            quantidade: item.quantidade,
+            tipo: item.tipo,
+          });
+        }
+        realm.close();
+        this.setState( state => state.lista = itens );
+
+        ToastAndroid.showWithGravityAndOffset(
+          'Item Removido', ToastAndroid.SHORT, ToastAndroid.BOTTOM, 25, 50
+        );
+      })
+      .catch( e => ToastAndroid.showWithGravityAndOffset(
+        JSON.stringify(e),
+        ToastAndroid.SHORT,
+        ToastAndroid.BOTTOM,
+        25,
+        50
+      ));
 
   }
 
   incrementarItem(indice){
-    let lista = this.state.lista;
-    let qtd = parseInt(lista[indice].quantidade);
+    let item = this.state.lista[ indice ];
+    let qtd = parseInt( item.quantidade );
 
     if( isNaN(qtd) ) { qtd = 0; }
-    lista[indice].quantidade = qtd + 1;
-    this.setState(state => state.lista = lista);
-  }
+    item.quantidade = qtd + 1;
+    
+    Realm.open({ schema: [ ItemSchema ] })
+      .then(realm => { 
 
-  removerItem(indice){
-    let lista = this.state.lista;
-    lista = lista.filter((item, index) => (index != indice) );
-    this.setState(state => state.lista = lista);
+        realm.write(() => realm.create('Item', item, Realm.UpdateMode.Modified) );
+
+        let itens = []
+        for( let item of realm.objects('Item').sorted('id',true) ){
+          itens.push({
+            id: item.id,
+            descricao: item.descricao,
+            quantidade: item.quantidade,
+            tipo: item.tipo,
+          });
+        }
+        realm.close();
+        this.setState( state => state.lista = itens );
+        
+        ToastAndroid.showWithGravityAndOffset(
+          'Item Incrementado',
+          ToastAndroid.SHORT,
+          ToastAndroid.BOTTOM,
+          25,
+          50
+        );
+        
+      })
+      .catch( e => ToastAndroid.showWithGravityAndOffset(
+        JSON.stringify(e),
+        ToastAndroid.SHORT,
+        ToastAndroid.BOTTOM,
+        25,
+        50
+      ));
   }
 
   diminuirItem(indice){
@@ -157,13 +169,13 @@ export default class App extends Component {
 
     lista[indice].quantidade = qtd;
     this.setState(state => state.lista = lista);
-  }
 
+    this.buscaLista();
+  }
 
   render() {
     return (
       <SafeAreaView style={ styles.container }>
-
         <View style={ styles.section }>
 
           <TextInput
@@ -209,7 +221,7 @@ export default class App extends Component {
                 removerItem={ () => this.removerItem(index) }
               /> 
             }
-            keyExtractor={ (item,index) => index.toString() }
+            keyExtractor={ item => item.id.toString() }
             getItemCount={ () => this.state.lista.length }
             getItem={ (data, index) => data[ index ] }
           />
