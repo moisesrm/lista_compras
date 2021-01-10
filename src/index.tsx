@@ -129,7 +129,8 @@ export default class App extends Component {
     Realm.open({ schema: [ ItemSchema ] })
       .then(realm => { 
 
-        realm.write(() => realm.create('Item', item, Realm.UpdateMode.Modified) );
+        let obj = realm.objectForPrimaryKey('Item',item.id);
+        realm.write(() => obj.quantidade = item.quantidade.toString() );
 
         let itens = []
         for( let item of realm.objects('Item').sorted('id',true) ){
@@ -162,15 +163,47 @@ export default class App extends Component {
   }
 
   diminuirItem(indice){
-    let lista = this.state.lista;
-    let qtd:any = parseInt(lista[indice].quantidade) - 1;
+
+    let item = this.state.lista[ indice ];
+    let qtd = parseInt( item.quantidade ) - 1;
 
     if( isNaN(qtd) || (qtd <= 0) ) { qtd = ''; }
+    item.quantidade = qtd;
 
-    lista[indice].quantidade = qtd;
-    this.setState(state => state.lista = lista);
+    Realm.open({ schema: [ ItemSchema ] })
+      .then(realm => { 
 
-    this.buscaLista();
+        let obj = realm.objectForPrimaryKey('Item',item.id);
+        realm.write(() => obj.quantidade = item.quantidade.toString() );
+
+        let itens = []
+        for( let item of realm.objects('Item').sorted('id',true) ){
+          itens.push({
+            id: item.id,
+            descricao: item.descricao,
+            quantidade: item.quantidade,
+            tipo: item.tipo,
+          });
+        }
+        realm.close();
+        this.setState( state => state.lista = itens );
+        
+        ToastAndroid.showWithGravityAndOffset(
+          'Item Decrementado',
+          ToastAndroid.SHORT,
+          ToastAndroid.BOTTOM,
+          25,
+          50
+        );
+        
+      })
+      .catch( e => ToastAndroid.showWithGravityAndOffset(
+        JSON.stringify(e),
+        ToastAndroid.SHORT,
+        ToastAndroid.BOTTOM,
+        25,
+        50
+      ));
   }
 
   render() {
