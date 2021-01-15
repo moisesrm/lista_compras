@@ -1,15 +1,11 @@
 import React, { Component } from 'react';
-import { 
-  TextInput, View, TouchableOpacity, ToastAndroid,
-  SafeAreaView, Text, ScrollView, VirtualizedList
-} from 'react-native';
+import { ToastAndroid, SafeAreaView, ScrollView, VirtualizedList } from 'react-native';
+import Topo from './components/Topo';
 import Item from './components/Item';
-import { Picker } from '@react-native-picker/picker';
+import Formulario from './components/Formulario';
 import { styles } from './assets/styles/index'
 import ItemSchema from './assets/models/listaCompraSchema';
 import Realm from "realm";
-
-const Separator = () => ( <View style={styles.separator} /> );
 
 export default class App extends Component {
   constructor(props) {
@@ -209,45 +205,23 @@ export default class App extends Component {
   render() {
     return (
       <SafeAreaView style={ styles.container }>
-        <View style={ styles.section }>
-
-          <TextInput
-            style={ styles.input }
-            onChangeText={ text => this.setState({ descricao: text }) }
-            value={ this.state.descricao }
-            placeholder='Item'
-          />
-
-          <TextInput
-            style={ styles.input }
-            onChangeText={ text => this.setState({ quantidade: text }) }
-            value={ this.state.quantidade }
-            placeholder='Quantidade'
-          />
-          <Picker
-            selectedValue={this.state.tipo}
-            style={ styles.select }
-            onValueChange={ (valor, indice) => this.setState({ tipo: valor }) }
-          >
-            <Picker.Item label="-" value="" />
-            <Picker.Item label="Caixa(s)" value="caixa" />
-            <Picker.Item label="Fardo(s)" value="fardo" />
-            <Picker.Item label="g(s)" value="g" />
-            <Picker.Item label="Kg(s)" value="kg" />
-            <Picker.Item label="Pacote(s)" value="pacote" />
-          </Picker>
-
-          <TouchableOpacity onPress={() => this.adicionaItem()}>
-            <Text style={styles.botao}>Adicionar Item</Text>
-          </TouchableOpacity>
+        <Topo texto="Minha Lista" removerItem={ () => {} } />
+        <Formulario 
+          valDesc={ this.state.descricao }
+          valQtd={ this.state.quantidade }
+          valTipo={ this.state.tipo }
           
-          <Separator />
-        </View >
+          acaoDesc={ text => this.setState({ descricao:text }) }
+          acaoQtd={ text => this.setState({ quantidade:text }) }
+          acaoTipo={ valor => this.setState({ tipo: valor }) }
+          acaoBtn={ () => this.adicionaItem() }
+          />
+        
         <ScrollView style={ styles.section }>
           <VirtualizedList
             data={ this.state.lista }
             initialNumToRender={ this.state.lista.length }
-            renderItem={({ item, index }) => <Item 
+            renderItem={ ({ item, index }) => <Item 
                 item={ item } 
                 incrementarItem={ () => this.incrementarItem(index) }
                 diminuirItem={ () => this.diminuirItem(index) }
@@ -258,7 +232,6 @@ export default class App extends Component {
             getItemCount={ () => this.state.lista.length }
             getItem={ (data, index) => data[ index ] }
           />
-
         </ScrollView>
 
       </SafeAreaView>

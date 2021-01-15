@@ -1,6 +1,6 @@
 import React  from 'react';
 import { Text, View, TouchableOpacity } from 'react-native';
-import { styles } from './../assets/styles/index'
+import { styles } from './../assets/styles/item'
 
 const tipos = { 
   "": "",
@@ -14,16 +14,20 @@ const tipos = {
 const Item = ({ item, incrementarItem, diminuirItem, removerItem })=> {
   return (
     <View style={styles.item}>
-      <Text style={styles.title}>{ item.quantidade } { tipos[ item.tipo ] } { item.descricao }</Text>
-      <TouchableOpacity onPress={ incrementarItem }>
-        <Text style={styles.botaoItem}>+</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={ diminuirItem }>
-        <Text style={styles.botaoItem}>-</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={ removerItem }>
-        <Text style={styles.botaoItem}>X</Text>
-      </TouchableOpacity>
+      <Text style={styles.title}>
+        { item.quantidade } { tipos[ item.tipo ] } { item.descricao }
+      </Text>
+      <View style={styles.botoes}>
+        <TouchableOpacity onPress={ incrementarItem } style={styles.botao}>
+          <Text style={styles.txtBotao}>+</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={ diminuirItem } style={styles.botao}>
+          <Text style={styles.txtBotao}>-</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={ removerItem } style={styles.botao}>
+          <Text style={styles.txtBotao}>x</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
