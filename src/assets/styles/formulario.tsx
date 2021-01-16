@@ -8,8 +8,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   separador: {
-    backgroundColor: "#fff",
-    borderColor: "#fff",
+    backgroundColor: "#f6f6f6",
+    borderColor: "#f6f6f6",
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     height: 25,

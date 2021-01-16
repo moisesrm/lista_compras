@@ -18,6 +18,7 @@ const Formulario = ({ valDesc,acaoDesc, valQtd,acaoQtd, valTipo,acaoTipo, acaoBt
           style={ styles.campos }
           onChangeText={ texto => acaoQtd(texto) }
           value={ valQtd }
+          keyboardType='number-pad'
           placeholder='Quantidade'
         />
 

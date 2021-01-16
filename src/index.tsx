@@ -1,17 +1,27 @@
 import React, { Component } from 'react';
-import { ToastAndroid, SafeAreaView, ScrollView, VirtualizedList } from 'react-native';
+import { 
+  ToastAndroid, SafeAreaView, ScrollView, VirtualizedList, View,
+  UIManager, Platform, LayoutAnimation, Keyboard
+} from 'react-native';
+import { styles } from './assets/styles/index';
 import Topo from './components/Topo';
 import Item from './components/Item';
 import Formulario from './components/Formulario';
-import { styles } from './assets/styles/index'
 import ItemSchema from './assets/models/listaCompraSchema';
 import Realm from "realm";
 
 export default class App extends Component {
   constructor(props) {
     super(props);
-    this.state = { lista: [], descricao: '', quantidade: '',tipo: '', };
+    this.state = { 
+      lista: [], descricao: '', quantidade: '', tipo: '', 
+      topoCtrl: { expanded: false, texto: "+", cor: "#a30fb3" }, 
+    };
     
+    if (Platform.OS === 'android') {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+
     Realm.open({ schema: [ ItemSchema ] })
       .then(realm => { 
         let itens = [];
@@ -202,21 +212,42 @@ export default class App extends Component {
       ));
   }
 
+  changeLayout(){
+    let expandido = this.state.topoCtrl.expanded;
+
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    Keyboard.dismiss;
+    this.setState( state => state.topoCtrl = { 
+      expanded: !expandido,
+      texto: (expandido) ? "+" : "-",
+      cor: (expandido) ? "#a30fb3" : "#f9c2ff",
+    });
+  }
+
   render() {
     return (
       <SafeAreaView style={ styles.container }>
-        <Topo texto="Minha Lista" removerItem={ () => {} } />
-        <Formulario 
-          valDesc={ this.state.descricao }
-          valQtd={ this.state.quantidade }
-          valTipo={ this.state.tipo }
-          
-          acaoDesc={ text => this.setState({ descricao:text }) }
-          acaoQtd={ text => this.setState({ quantidade:text }) }
-          acaoTipo={ valor => this.setState({ tipo: valor }) }
-          acaoBtn={ () => this.adicionaItem() }
-          />
-        
+        <Topo 
+          texto="Minha Lista" 
+          voltarPag={ () => {} } 
+          mostrarForm={ () => this.changeLayout() } 
+          btnTexto={ this.state.topoCtrl.texto }
+          btnCor={ this.state.topoCtrl.cor }
+        />
+
+        <View style={{ height: this.state.topoCtrl.expanded ? null : 0, overflow: 'hidden' }}>
+          <Formulario 
+            valDesc={ this.state.descricao }
+            valQtd={ this.state.quantidade }
+            valTipo={ this.state.tipo }
+            
+            acaoDesc={ text => this.setState({ descricao:text }) }
+            acaoQtd={ text => this.setState({ quantidade:text }) }
+            acaoTipo={ valor => this.setState({ tipo: valor }) }
+            acaoBtn={ () => this.adicionaItem() }
+            />
+        </View>
+
         <ScrollView style={ styles.section }>
           <VirtualizedList
             data={ this.state.lista }
