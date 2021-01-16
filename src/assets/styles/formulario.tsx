@@ -37,6 +37,23 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10
   },
+  campoSelect: {
+    borderColor: "#a30fb3",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    height: 40,
+    marginBottom: 15,
+    borderRadius: 5,
+    paddingHorizontal: 1,
+    paddingVertical: 1,
+    justifyContent: "center"
+  },
+  select: {
+    borderColor: "#a30fb3",
+    borderRadius: 5,
+    height: 40,
+    fontSize: 14,
+  }
 });
 
 export { styles }

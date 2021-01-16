@@ -216,7 +216,7 @@ export default class App extends Component {
     let expandido = this.state.topoCtrl.expanded;
 
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    Keyboard.dismiss;
+    Keyboard.dismiss();
     this.setState( state => state.topoCtrl = { 
       expanded: !expandido,
       texto: (expandido) ? "+" : "-",

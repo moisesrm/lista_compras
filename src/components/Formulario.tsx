@@ -22,18 +22,20 @@ const Formulario = ({ valDesc,acaoDesc, valQtd,acaoQtd, valTipo,acaoTipo, acaoBt
           placeholder='Quantidade'
         />
 
-        <Picker
-          style={ styles.campos }
-          selectedValue={ valTipo }
-          onValueChange={ valor => acaoTipo(valor) }
-        >
-          <Picker.Item label="-" value="" />
-          <Picker.Item label="Caixa(s)" value="caixa" />
-          <Picker.Item label="Fardo(s)" value="fardo" />
-          <Picker.Item label="g(s)" value="g" />
-          <Picker.Item label="Kg(s)" value="kg" />
-          <Picker.Item label="Pacote(s)" value="pacote" />
-        </Picker>
+        <View style={styles.campoSelect}>
+          <Picker
+            style={styles.select}
+            selectedValue={ valTipo }
+            onValueChange={ valor => acaoTipo(valor) }
+          >
+            <Picker.Item label="-" value="" />
+            <Picker.Item label="Caixa(s)" value="caixa" />
+            <Picker.Item label="Fardo(s)" value="fardo" />
+            <Picker.Item label="g(s)" value="g" />
+            <Picker.Item label="Kg(s)" value="kg" />
+            <Picker.Item label="Pacote(s)" value="pacote" />
+          </Picker>
+        </View>
 
         <TouchableOpacity onPress={ acaoBtn } style={ styles.botao }>
           <Text style={styles.txtBotao}>Adicionar Item</Text>
